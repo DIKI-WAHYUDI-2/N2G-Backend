@@ -52,16 +52,13 @@ class NewsController(Resource):
         paginated = NewsService.get_paginated_news(page, limit, sentiment=sentiment)
         news_items = [item.to_dict() for item in paginated.items]
 
-        return jsonify(
-            {
-                "message": "News loaded successfully",
-                "page": page,
-                "limit": limit,
-                "total": paginated.total,
-                "news": news_items,
-            },
-            200,
-        )
+        return {
+            "message": "News loaded successfully",
+            "page": page,
+            "limit": limit,
+            "total": paginated.total,
+            "news": news_items,
+        }, 200
 
     @staticmethod
     def _update_news(news_id):
