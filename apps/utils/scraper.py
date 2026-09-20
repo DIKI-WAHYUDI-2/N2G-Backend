@@ -297,7 +297,16 @@ def normalize_text(value):
     return re.sub(r"\s+", " ", (value or "").strip().lower())
 
 
-def is_relevant_news_item(title, source, content):
+OTHER_PTPN_ENTITY_PATTERN = re.compile(
+    r"\bptpn\s+(i|ii|iii|vi|vii|viii|ix|x|xi|xii|xiii|xiv)\b"
+)
+OTHER_PTPN_IV_REGIONAL_PATTERN = re.compile(
+    r"ptpn\s+iv\s+regional\s+(i|ii|iv|v|vi|vii|viii|ix|x|xi|xii|xiii|xiv)\b"
+)
+PTPN_IV_BARE_PATTERN = re.compile(r"\bptpn\s+iv\b")
+
+
+def is_relevant_news_item(title, source, content, query=None):
     haystack = " ".join(
         [
             normalize_text(title),
@@ -305,7 +314,28 @@ def is_relevant_news_item(title, source, content):
             normalize_text(content),
         ]
     )
-    return any(term in haystack for term in RELEVANT_TERMS)
+
+    # 1. Term paling spesifik & sudah pasti relevan, termasuk nama lama
+    #    "PTPN V" yang memang merujuk ke PTPN IV Regional III.
+    if any(term in haystack for term in RELEVANT_TERMS):
+        return True
+
+    # 2. Exclude eksplisit: entitas PTPN lain (PTPN I, II, III, VI, dst —
+    #    bukan Regional III / bukan nama lama "PTPN V") atau PTPN IV Regional
+    #    selain III yang disebut jelas di judul/sumber/isi. Ini mencegah berita
+    #    soal PTPN group lain ikut ke-capture hanya karena mengandung kata "ptpn".
+    if OTHER_PTPN_ENTITY_PATTERN.search(haystack):
+        return False
+    if OTHER_PTPN_IV_REGIONAL_PATTERN.search(haystack):
+        return False
+
+    # 3. Include: penyebutan "PTPN IV" polos / "PTPN IV PalmCo" tanpa regional
+    #    lain disebut eksplisit — pada praktiknya sering merujuk ke Regional III,
+    #    walau body artikel yang menjelaskan itu gagal di-scrape (situs block, dll).
+    if PTPN_IV_BARE_PATTERN.search(haystack):
+        return True
+
+    return False
 
 
 def _extract_text_from_container(container):
@@ -482,7 +512,7 @@ def get_news(search_params):
                 if not is_date_in_range(published_date, start_date, end_date):
                     continue
 
-                if not is_relevant_news_item(title, source_name, content):
+                if not is_relevant_news_item(title, source_name, content, query=query):
                     continue
 
                 dedupe_key = url or normalize_text(title)
