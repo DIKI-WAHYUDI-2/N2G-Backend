@@ -1,30 +1,45 @@
+# Git
 .git
 .gitignore
 
+# IDEs / Editors
 .idea/
 .vscode/
 *.swp
 *.swo
 
-.env
-
+# Python
 __pycache__/
 *.pyc
 *.pyo
 *.pyd
+.Python
+env/
+venv/
+pip-log.txt
+pip-delete-this-directory.txt
 
+# Environment variables
+.env
+
+# Testing
 tests/
 .pytest_cache/
 htmlcov/
 .coverage
 .tox/
+test_output*.txt
 
+# Logs and Reports
 logs/
 output/
 reports/
 
+# Cache / ML Training Leftovers
+checkpoints/
 model - lama/
 
+# Artifacts
 task.md
 implementation_plan.md
 test_report.md
