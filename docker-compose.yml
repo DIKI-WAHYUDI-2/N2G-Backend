@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
   web:
-    build: .
+    build: dikiwahyudi/sentimen-backend:latest
     container_name: n2g_backend
     ports:
       - "5000:5000"
