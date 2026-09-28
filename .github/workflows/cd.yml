@@ -14,6 +14,22 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+
+      - name: Check Docker Hub secrets
+        run: |
+          if [ -z "${{ secrets.DOCKERHUB_USERNAME }}" ]; then
+            echo "DOCKERHUB_USERNAME is EMPTY"
+            exit 1
+          fi
+
+          if [ -z "${{ secrets.DOCKERHUB_TOKEN }}" ]; then
+            echo "DOCKERHUB_TOKEN is EMPTY"
+            exit 1
+          fi
+
+          echo "Docker Hub secrets are available"
 
       - name: Login to Docker Hub
         uses: docker/login-action@v3
