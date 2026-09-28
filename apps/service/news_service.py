@@ -364,19 +364,37 @@ class NewsService:
     @staticmethod
     def get_monthly_sentiment_summary(year=None):
         available_years = NewsRepository.get_available_years()
+
         if not available_years:
-            return {"year": None, "years": [], "data": []}
+            return {
+                "year": None,
+                "years": [],
+                "data": []
+            }
 
         selected_year = year if year in available_years else available_years[0]
+
         rows = NewsRepository.get_sentiment_and_date_by_year(selected_year)
+
         monthly_sentiment = {
-            month: {"positive": 0, "negative": 0, "neutral": 0}
+            month: {
+                "positive": 0,
+                "negative": 0,
+                "neutral": 0
+            }
             for month in range(1, 13)
         }
 
         for published_at, sentiment in rows:
-            month = published_at.month
+            # Handle date/datetime maupun string
+            if isinstance(published_at, str):
+                published_at = published_at[:10]
+                month = int(published_at[5:7])
+            else:
+                month = published_at.month
+
             normalized_sentiment = sentiment.strip().lower()
+
             if normalized_sentiment == "positif":
                 normalized_sentiment = "positive"
             elif normalized_sentiment == "negatif":
@@ -405,4 +423,5 @@ class NewsService:
                 }
                 for month, counts in monthly_sentiment.items()
             ],
-        }
+    }
+
